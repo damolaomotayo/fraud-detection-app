@@ -1,11 +1,14 @@
 package com.githhub.damola.server.service;
 
+import com.githhub.damola.server.dto.CreateTransaction;
+import com.githhub.damola.server.dto.TransactionDto;
 import com.githhub.damola.server.entity.Transaction;
 import com.githhub.damola.server.repository.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -91,7 +96,40 @@ class TransactionServiceTest {
     }
 
     @Test
-    @Disabled
     void saveTransaction() {
+        CreateTransaction createTransaction = CreateTransaction.builder()
+                .user("Alice")
+                .amount(1000.0)
+                .build();
+
+        Transaction savedTransaction = Transaction.builder()
+                .id(1L)
+                .user("Alice")
+                .amount(1000.0)
+                .timestamp(LocalDateTime.now())
+                .fraudulent(false)
+                .build();
+
+        when(transactionRepository.saveAndFlush(any(Transaction.class)))
+                .thenReturn(savedTransaction);
+
+        TransactionDto result = undertest.saveTransaction(createTransaction);
+
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).saveAndFlush(transactionCaptor.capture());
+
+        Transaction capturedTransaction = transactionCaptor.getValue();
+        assertThat(capturedTransaction.getUser()).isEqualTo("Alice");
+        assertThat(capturedTransaction.getAmount()).isEqualTo(1000.0);
+        assertThat(capturedTransaction.getFraudulent()).isFalse();
+        assertThat(capturedTransaction.getTimestamp()).isNotNull();
+        assertThat(capturedTransaction.getId()).isNull();
+
+        // Verify the returned DTO
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getUser()).isEqualTo("Alice");
+        assertThat(result.getAmount()).isEqualTo(1000.0);
+        assertThat(result.getFraudulent()).isFalse();
+        assertThat(result.getTimestamp()).isEqualTo(savedTransaction.getTimestamp());
     }
 }
