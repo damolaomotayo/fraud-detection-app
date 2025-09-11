@@ -32,9 +32,9 @@ public class TransactionService {
                 .fraudulent(false)
                 .build();
 
-        transactionRepository.saveAndFlush(newTransaction);
+        Transaction savedTransaction = transactionRepository.saveAndFlush(newTransaction);
 
-        return mapToTransactionDto(newTransaction);
+        return mapToTransactionDto(savedTransaction);
     }
 
     private TransactionDto mapToTransactionDto(Transaction transaction) {
