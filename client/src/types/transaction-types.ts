@@ -5,3 +5,7 @@ export interface Transaction {
   timestamp: string;
   fraudulent: boolean;
 }
+
+export interface TransactionRowProp {
+  transaction: Transaction;
+}
