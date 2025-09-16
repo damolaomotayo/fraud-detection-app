@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Transaction } from "./types";
-import TransactionTable from "./components/TransactionTable";
+import type { Transaction } from "./types/transaction-types";
+import TransactionTable from "./components/Transactions/TransactionTable";
 import TransactionChart from "./components/TransactionChart";
 import FraudAlerts from "./components/FraudAlerts";
 
