@@ -1,5 +1,5 @@
 import React from "react";
-import type { Transaction } from "../types/transaction-types";
+import type { Transaction } from "../../types/transaction-types";
 import {
   LineChart,
   Line,

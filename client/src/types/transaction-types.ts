@@ -9,3 +9,7 @@ export interface Transaction {
 export interface TransactionRowProp {
   transaction: Transaction;
 }
+
+export interface FraudSummary {
+  fraudSummary: Transaction[];
+}
