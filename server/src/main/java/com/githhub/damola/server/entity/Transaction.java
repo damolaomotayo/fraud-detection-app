@@ -17,6 +17,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "username")
     private String user;
     private Double amount;
     private LocalDateTime timestamp;
