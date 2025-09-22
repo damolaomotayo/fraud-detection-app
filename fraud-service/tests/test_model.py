@@ -6,10 +6,8 @@ import pytest
 
 @pytest.fixture(scope="module")
 def model_path(tmp_path_factory):
-    # train a small model for testing if model.pkl not present
     path = os.path.join(os.path.dirname(__file__), "..", "model.pkl")
     if not os.path.exists(path):
-        # simple model
         df = pd.DataFrame({
             "amount": [50, 200, 500, 1200, 3000, 5000, 8000, 50, 100, 7000],
             "hour":   [10, 14, 9, 20, 23, 2, 1, 12, 15, 3],
