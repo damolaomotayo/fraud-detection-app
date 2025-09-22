@@ -3,3 +3,6 @@ uvicorn
 scikit-learn
 pandas
 joblib
+pytest
+pytest-cov
+httpx
