@@ -2,7 +2,10 @@ package com.githhub.damola.server.service;
 
 import com.githhub.damola.server.dto.CreateTransaction;
 import com.githhub.damola.server.dto.TransactionDto;
+import com.githhub.damola.server.dto.UpdateTransaction;
 import com.githhub.damola.server.entity.Transaction;
+import com.githhub.damola.server.exception.BadRequestException;
+import com.githhub.damola.server.exception.NotFoundException;
 import com.githhub.damola.server.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,38 @@ public class TransactionService {
         Transaction savedTransaction = transactionRepository.saveAndFlush(newTransaction);
 
         return mapToTransactionDto(savedTransaction);
+    }
+
+    public TransactionDto updateTransaction(UpdateTransaction updateRequest, Long id) {
+        Transaction transaction = getTransaction(id);
+
+        if (updateRequest.getFraudulent() == null && updateRequest.getAmount() == null) {
+            throw new BadRequestException("Provide the field you want to update");
+        }
+
+        if (updateRequest.getAmount() != null) {
+            transaction.setAmount(updateRequest.getAmount());
+        }
+
+        if (updateRequest.getFraudulent() != null) {
+            transaction.setFraudulent(updateRequest.getFraudulent());
+        }
+
+        transaction = transactionRepository.save(transaction);
+
+        return mapToTransactionDto(transaction);
+    }
+
+    public void deleteTransaction(Long id) {
+        Transaction transaction = getTransaction(id);
+
+        transactionRepository.delete(transaction);
+    }
+
+    private Transaction getTransaction(Long id) {
+        return transactionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("transaction not found with id"));
+
     }
 
     private TransactionDto mapToTransactionDto(Transaction transaction) {

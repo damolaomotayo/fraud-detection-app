@@ -1,5 +1,6 @@
 package com.githhub.damola.server.exception;
 
+import com.githhub.damola.server.dto.CustomError;
 import com.githhub.damola.server.dto.ValidationError;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -24,5 +25,17 @@ public class CustomHandler {
         }
 
         return new ValidationError(errors);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotFoundException.class)
+    public CustomError notFoundHandler(NotFoundException ex) {
+        return new CustomError(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(BadRequestException.class)
+    public CustomError BadRequestHandler(BadRequestException ex) {
+        return new CustomError(ex.getMessage());
     }
 }
