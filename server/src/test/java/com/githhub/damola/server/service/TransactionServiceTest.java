@@ -2,7 +2,10 @@ package com.githhub.damola.server.service;
 
 import com.githhub.damola.server.dto.CreateTransaction;
 import com.githhub.damola.server.dto.TransactionDto;
+import com.githhub.damola.server.dto.UpdateTransaction;
 import com.githhub.damola.server.entity.Transaction;
+import com.githhub.damola.server.exception.BadRequestException;
+import com.githhub.damola.server.exception.NotFoundException;
 import com.githhub.damola.server.repository.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -16,11 +19,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionServiceTest {
@@ -132,4 +137,92 @@ class TransactionServiceTest {
         assertThat(result.getFraudulent()).isFalse();
         assertThat(result.getTimestamp()).isEqualTo(savedTransaction.getTimestamp());
     }
+
+    @Test
+    void updateTransaction_success() {
+        Transaction transaction = transactions.get(0);
+
+        Transaction savedTransaction = Transaction.builder()
+                .id(1L)
+                .user("Alice")
+                .amount(250.0)
+                .timestamp(LocalDateTime.now())
+                .fraudulent(false)
+                .build();
+
+        UpdateTransaction updateRequest = UpdateTransaction.builder()
+                .amount(250.0)
+                .build();
+
+        when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(transaction));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
+
+        TransactionDto updateResponse = undertest.updateTransaction(updateRequest, 1L);
+
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionCaptor.capture());
+
+        Transaction capturedTransaction = transactionCaptor.getValue();
+        assertThat(capturedTransaction.getUser()).isEqualTo("Alice");
+        assertThat(capturedTransaction.getAmount()).isEqualTo(250.0);
+
+        assertThat(updateResponse.getAmount()).isEqualTo(updateRequest.getAmount());
+        assertThat(updateResponse.getFraudulent()).isEqualTo(transaction.getFraudulent());
+
+        assertThat(transaction).isNotNull();
+
+        verify(transactionRepository).findById(anyLong());
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+    @Test
+    void updateTransaction_invalidTransaction() {
+        when(transactionRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        UpdateTransaction updateRequest = UpdateTransaction.builder()
+                .fraudulent(true)
+                .build();
+
+        assertThatThrownBy(() -> undertest.updateTransaction(updateRequest, 1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("transaction not found with id");
+
+        verify(transactionRepository).findById(anyLong());
+        verify(transactionRepository, never()).save(any(Transaction.class));
+    }
+
+    @Test
+    void updateTransaction_updateFieldNotProvided() {
+        UpdateTransaction updateRequest = UpdateTransaction.builder().build();
+        assertThatThrownBy(() -> undertest.updateTransaction(updateRequest, 1L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Provide the field you want to update");
+
+        verify(transactionRepository, never()).findById(anyLong());
+        verify(transactionRepository, never()).save(any(Transaction.class));
+    }
+
+    @Test
+    void deleteTransaction_success() {
+        Transaction transaction = transactions.get(0);
+
+        when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(transaction));
+
+        undertest.deleteTransaction(1L);
+
+        assertThat(transaction).isNotNull();
+
+        verify(transactionRepository).findById(anyLong());
+        verify(transactionRepository).delete(transaction);
+    }
+
+    @Test
+    void deleteTransaction_invalidTransaction() {
+        when(transactionRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> undertest.deleteTransaction(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("transaction not found");
+    }
+
 }
