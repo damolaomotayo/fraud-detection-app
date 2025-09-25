@@ -3,6 +3,7 @@ package com.githhub.damola.server.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.githhub.damola.server.dto.CreateTransaction;
 import com.githhub.damola.server.dto.TransactionDto;
+import com.githhub.damola.server.dto.UpdateTransaction;
 import com.githhub.damola.server.service.TransactionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,10 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TransactionController.class)
@@ -87,7 +89,6 @@ class TransactionControllerTest {
 
         when(transactionService.saveTransaction(any(CreateTransaction.class))).thenReturn(response);
 
-        // When & Then
         mockMvc.perform(post("/api/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -103,7 +104,7 @@ class TransactionControllerTest {
     @Test
     void createTransaction_ShouldReturnBadRequest_WhenUserIsBlank() throws Exception {
         CreateTransaction request = CreateTransaction.builder()
-                .user("")  // Blank user
+                .user("")
                 .amount(100.0)
                 .fraudulent(false)
                 .build();
@@ -118,7 +119,7 @@ class TransactionControllerTest {
     @Test
     void createTransaction_ShouldReturnBadRequest_WhenUserIsNull() throws Exception {
         CreateTransaction request = CreateTransaction.builder()
-                .user(null)  // Null user
+                .user(null)
                 .amount(100.0)
                 .fraudulent(false)
                 .build();
@@ -134,7 +135,7 @@ class TransactionControllerTest {
     void createTransaction_ShouldReturnBadRequest_WhenAmountIsNull() throws Exception {
         CreateTransaction request = CreateTransaction.builder()
                 .user("Alice")
-                .amount(null)  // Null amount
+                .amount(null)
                 .fraudulent(false)
                 .build();
 
@@ -150,7 +151,7 @@ class TransactionControllerTest {
         CreateTransaction request = CreateTransaction.builder()
                 .user("Alice")
                 .amount(100.0)
-                .fraudulent(null)  // Null fraudulent
+                .fraudulent(null)
                 .build();
 
         mockMvc.perform(post("/api/transactions")
@@ -185,5 +186,31 @@ class TransactionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void updateTransaction_shouldUpdateTransaction() throws Exception {
+        TransactionDto response = TransactionDto.builder()
+                        .amount(100.0).build();
+
+        UpdateTransaction request = UpdateTransaction.builder()
+                .amount(100.0).build();
+
+        when(transactionService.updateTransaction(any(UpdateTransaction.class), anyLong())).thenReturn(response);
+
+        mockMvc.perform(patch("/api/transactions/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.amount", is(response.getAmount())));
+    }
+
+    @Test
+    void deleteTransaction_shouldDeleteTransaction() throws Exception {
+        doNothing().when(transactionService).deleteTransaction(1L);
+
+        mockMvc.perform(delete("/api/transactions/1"))
+                .andExpect(status().isNoContent());
     }
 }
