@@ -41,11 +41,11 @@ public class TransactionService {
     }
 
     public TransactionDto updateTransaction(UpdateTransaction updateRequest, Long id) {
-        Transaction transaction = getTransaction(id);
-
         if (updateRequest.getFraudulent() == null && updateRequest.getAmount() == null) {
             throw new BadRequestException("Provide the field you want to update");
         }
+
+        Transaction transaction = getTransaction(id);
 
         if (updateRequest.getAmount() != null) {
             transaction.setAmount(updateRequest.getAmount());
@@ -55,9 +55,9 @@ public class TransactionService {
             transaction.setFraudulent(updateRequest.getFraudulent());
         }
 
-        transaction = transactionRepository.save(transaction);
+        Transaction updatedTransaction = transactionRepository.save(transaction);
 
-        return mapToTransactionDto(transaction);
+        return mapToTransactionDto(updatedTransaction);
     }
 
     public void deleteTransaction(Long id) {
