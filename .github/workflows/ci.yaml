@@ -20,7 +20,7 @@ jobs:
           java-version: 17
 
       - name: Run backend tests
-        work-directory: server
+        working-directory: server
         run: |
           mvn clean test
 
@@ -45,6 +45,6 @@ jobs:
 
       - name: Install gateway deps & run test
         working-directory: gateway
-        npm: |
+        run: |
           npm ci
           npm test --silent
