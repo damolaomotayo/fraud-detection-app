@@ -34,7 +34,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          pip install -r requirements.test
+          pip install -r requirements.txt
           python train_model.py
           pytext --cov=./ --cov-report=xml
 
